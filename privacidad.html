@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es-PA">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07101f"><title>Privacidad · Sismo Panamá</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>.privacy{max-width:860px;margin:30px auto;background:var(--panel,#101b2b);border:1px solid var(--line,#26364a);border-radius:20px;padding:clamp(20px,5vw,42px);line-height:1.7}.privacy h1,.privacy h2{line-height:1.2}.privacy a{color:#9bdcff}</style>
+</head>
+<body><main class="privacy">
+<a href="./">← Volver a Sismo Panamá</a>
+<h1>Política de privacidad</h1><p><strong>Última actualización: 11 de octubre de 2026 · versión 0.7.1.</strong></p>
+<p>Sismo Panamá es un proyecto comunitario independiente y no oficial. Esta página describe el funcionamiento de la distribución pública incluida en este proyecto. El operador de cualquier instalación o servicio backend debe adaptar y publicar sus datos de contacto y las condiciones reales de su despliegue antes de habilitar notificaciones remotas.</p>
+<h2>Sin backend Web Push configurado</h2>
+<p>La PWA no requiere crear una cuenta ni pide nombre, correo electrónico o número telefónico. Los filtros y ajustes se guardan en el almacenamiento local del navegador. La ubicación del dispositivo solo se solicita si pulsas “Mi ubicación”; se utiliza en el navegador para calcular distancias y no se envía deliberadamente al backend de Sismo Panamá. Puedes denegar o retirar el permiso en el navegador.</p>
+<h2>Cuando Web Push esté activado</h2>
+<p>Si el operador despliega y configura un backend Web Push y activas las notificaciones, el servicio guardará la URL de suscripción que genera el navegador, sus claves criptográficas de suscripción, el umbral de magnitud que elegiste y marcas de tiempo técnicas. Estos datos son necesarios para enviar avisos y gestionar la suscripción. El endpoint de push se trata como dato sensible de operación y no debe publicarse.</p>
+<p>El backend de referencia mantiene una lista temporal en memoria con la dirección IP de la conexión para aplicar límites básicos de solicitudes; no la guarda en su base SQLite. El proveedor de hosting puede registrar la IP conforme a su propia política. El backend no solicita ni almacena la ubicación precisa del usuario para filtrar notificaciones. Envía reportes USGS en la región de Panamá y alrededores que cumplan el umbral elegido. La suscripción se elimina cuando la persona la cancela, cuando el proveedor la declara expirada o tras 12 meses sin actualizarse. Los registros de eventos enviados se conservan hasta 90 días. El proveedor de alojamiento puede mantener registros técnicos propios, según su configuración.</p>
+<p>Activa Web Push solo después de leer la política que publique el operador real del servicio. Una instalación de Sismo Panamá de terceros puede tener un backend o prácticas de datos diferentes.</p>
+<h2>Servicios externos</h2>
+<p>La aplicación consulta los catálogos públicos de USGS y del Instituto de Geociencias de la Universidad de Panamá (IGC-UP). El mapa usa Leaflet desde un CDN y teselas de OpenStreetMap. Esos proveedores pueden recibir peticiones HTTP y datos técnicos como la dirección IP conforme a sus propias políticas. Si se activa el proxy IGC-UP de Cloudflare, Cloudflare procesará esas solicitudes. GitHub Pages y el proveedor del backend también pueden procesar registros técnicos.</p>
+<h2>Contacto del responsable</h2>
+<p><strong>Antes de activar notificaciones remotas, el operador debe completar aquí un contacto real y un canal de privacidad/seguridad.</strong> La copia de desarrollo no designa todavía un responsable institucional ni un canal de atención permanente.</p>
+<h2>Seguridad y derechos</h2>
+<p>El proyecto no incluye analítica publicitaria ni venta intencional de datos. No subas datos personales, tokens ni claves al repositorio. Para cancelar una suscripción Web Push usa el control de la aplicación o los permisos de notificaciones del navegador. Retirar el permiso en el navegador puede impedir el envío, aunque el registro del backend no se elimine hasta que se pueda cancelar o se limpie por expiración.</p>
+<h2>Limitaciones</h2>
+<p>Los reportes pueden ser preliminares, tardíos o corregidos. Sismo Panamá no es un sistema oficial de alerta temprana, no predice terremotos y no sustituye a SINAPROC ni a los avisos oficiales. Los avisos push pueden retrasarse o no llegar por limitaciones del proveedor, el navegador, la red, el sistema operativo o el ahorro de batería.</p>
+<p><a href="https://github.com/">GitHub</a> · <a href="https://earthquake.usgs.gov/fdsnws/event/1/">USGS</a> · <a href="https://sismosgeociencias.up.ac.pa/">IGC-UP</a> · <a href="https://www.sinaproc.gob.pa/">SINAPROC</a></p>
+</main></body></html>

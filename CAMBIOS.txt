@@ -1,0 +1,31 @@
+SISMO PANAMÁ v0.7.1 — CAMBIOS
+
+FRONTEND / PWA
+- Versión visible v0.7.1 y nombre de caché actualizado para que el navegador detecte la nueva versión.
+- Intervalos visibles por fuente: USGS 30 s (primer plano), 15 s (vigilia), 120 s (pestaña oculta); IGC-UP 60 s, 30 s y 180 s respectivamente.
+- La UI ya no muestra un único intervalo ambiguo. Las fuentes pueden publicar tarde y el navegador puede suspender consultas.
+- La consulta experimental de grupos de movimiento deja de usar 5 s fijos: el mínimo es 15 s, independiente del catálogo sísmico. Detección comunitaria sigue desactivada.
+- Se agrega el cliente Web Push opcional; permanece deshabilitado mientras PUSH_API_BASE esté vacío.
+- Service worker actualiza el caché y ofrece recepción push, pero el receptor solo muestra mensajes que envíe el backend configurado.
+
+DOCUMENTACIÓN / SEGURIDAD
+- Añadidos SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, GOVERNANCE.md, PRIVACY.md, DISCLAIMER.md, TERMS_OF_USE.md, LICENSE_ASSETS.md, THIRD_PARTY_NOTICES.md, CHANGELOG.md y ROADMAP.md.
+- Añadida documentación técnica de arquitectura, fuentes, política de alertas, despliegue, recuperación y configuración manual de seguridad de GitHub.
+- Añadidos issue templates, pull-request template, Dependabot y workflow CI.
+- Se mantiene la licencia MIT recibida, pendiente de confirmar derechos sobre todos los recursos de terceros.
+
+BACKEND PUSH OPCIONAL
+- Añadido backend FastAPI con registro/cancelación de suscripciones, umbral de magnitud por dispositivo, almacenamiento SQLite, límites básicos y monitor central USGS opcional.
+- Añadido generador de claves VAPID y plantilla de variables sin secretos.
+- Backend apagado por defecto; GitHub Pages no ejecuta ese servicio. El operador debe desplegar HTTPS, almacenamiento persistente, claves, rate limiting/WAF y probar en teléfonos reales.
+- Monitor remoto v0.7.1 consulta USGS, no IGC-UP; no es un sistema de alerta temprana ni de alta disponibilidad.
+
+VALIDACIÓN
+- Pruebas originales Python: 4 aprobadas.
+- Pruebas nuevas del backend: 6 aprobadas sin conexión real a las fuentes.
+- Sintaxis JavaScript/Python y validación de la configuración: aprobadas en el entorno de construcción.
+- No fue posible instalar pywebpush en este entorno sin acceso a Internet; el envío real requiere instalar backend/requirements.txt y probarlo en el hosting que elijas.
+
+- Se corrigió la prioridad del intervalo cuando la pestaña queda oculta: aplica el intervalo reducido aunque el modo vigilia esté encendido.
+- El backend valida la clave pública VAPID, contacto, URL pública y origen configurado antes de considerar Web Push listo.
+- Se restringieron endpoints de suscripción a dominios conocidos de proveedores Web Push para evitar que el backend envíe solicitudes a URLs HTTPS arbitrarias.

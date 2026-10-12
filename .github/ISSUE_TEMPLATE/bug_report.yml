@@ -1,0 +1,35 @@
+name: Reportar un error
+description: Reporta un problema no sensible en Sismo Panamá.
+title: "[Error]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "No reportes aquí vulnerabilidades, claves, tokens o datos personales. Para problemas de seguridad lee SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: Versión
+      description: "Ej. v0.7.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma
+      options: ["Chrome Android", "Safari iOS", "Chrome escritorio", "Edge", "Firefox", "Otro"]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: No pegues datos privados ni tokens.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado y resultado observado
+    validations:
+      required: true

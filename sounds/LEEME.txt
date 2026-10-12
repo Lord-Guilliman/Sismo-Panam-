@@ -1,0 +1,3 @@
+El audio personalizado se excluyó de esta compilación de prueba hasta confirmar y documentar el derecho a redistribuirlo.
+
+La configuración usa el tono sintetizado incorporado en app.js. No vuelvas a añadir archivos de audio con licencia o procedencia incierta. Si se incorpora un nuevo sonido, registra autoría, licencia y atribución en THIRD_PARTY_NOTICES.md.

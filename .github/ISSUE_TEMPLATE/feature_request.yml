@@ -1,0 +1,27 @@
+name: Proponer una mejora
+description: Sugiere una mejora para Sismo Panamá.
+title: "[Mejora]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Para funciones que cambien los criterios de alerta, describe también riesgos de falsas alarmas y cómo probarías el cambio."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Necesidad que resolvería
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Propuesta
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Seguridad, privacidad y fiabilidad
+      description: ¿Qué podría fallar o qué datos serían necesarios?
+    validations:
+      required: false

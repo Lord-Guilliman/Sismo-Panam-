@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07101f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Monitor comunitario de sismos para Panamá con datos de USGS e IGC-UP. Proyecto abierto y gratuito, no oficial." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Sismo Panamá v0.7.1 — Monitor sísmico comunitario</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <img class="logo" src="icons/logo-circulo.png" width="56" height="56" alt="Logo de Sismo Panamá" />
+      <div><h1>Sismo<span>Panamá</span></h1><p>Alerta sísmica comunitaria · no oficial · v0.7.1</p></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="installBtn" title="Instalar en este dispositivo">⬇ Instalar app</button>
+      <button class="btn" id="soundBtn" title="Activa sonido y avisos locales mientras la página está funcionando; no configura notificaciones remotas">♬ Activar alertas</button>
+      <button class="btn btn-vigil" id="vigilBtn" title="Pantalla oscura que se mantiene encendida y vigila los sismos">☾ Modo vigilia</button>
+      <button class="btn primary" id="refreshBtn">↻ Actualizar</button>
+    </div>
+  </header>
+
+  <div class="status-row"><span class="live-dot"></span><span id="globalStatus">Conectando con las fuentes sísmicas…</span><span class="status-chip">Última consulta: <strong id="lastUpdate">—</strong></span><span class="status-chip">Consulta automática: <strong id="pollEvery">USGS 30 s · IGC-UP 60 s</strong></span></div>
+
+  <details class="notice">
+    <summary><span class="symbol">⚠</span><strong>Proyecto comunitario, no oficial.</strong> Avisa DESPUÉS de que el sismo es publicado. Sigue a SINAPROC. <u>Leer más</u></summary>
+    <p>No es un sistema oficial de alerta temprana y no predice terremotos: muestra lo que reportan USGS (EE. UU.) e IGC-UP (Universidad de Panamá) segundos o minutos después del evento, así que no da tiempo de ponerse a salvo. Los primeros datos suelen ser preliminares y cambian. Las alertas de esta versión se generan mientras la página está funcionando; instalarla no garantiza avisos con la app cerrada o el teléfono bloqueado. El envío remoto en segundo plano requiere configurar un servidor de notificaciones, que GitHub Pages no proporciona. El <strong>Modo vigilia</strong> (pantalla encendida y oscura, con el cargador puesto) tampoco garantiza la recepción. Sigue siempre las instrucciones de SINAPROC y de las autoridades.</p>
+  </details>
+
+  <section class="hero" id="heroCard" aria-label="Último sismo">
+    <div class="hero-mag" id="heroMag">—</div>
+    <div class="hero-main">
+      <div class="eyebrow">ÚLTIMO SISMO EN LA REGIÓN</div>
+      <div class="hero-place" id="heroPlace">Consultando los catálogos sísmicos…</div>
+      <div class="hero-meta" id="heroMeta"></div>
+      <div class="srcs" id="heroSrc"></div>
+    </div>
+  </section>
+
+  <section class="metrics" aria-label="Resumen de actividad">
+    <div class="metric"><div class="label">Sismos en la vista</div><div class="value" id="metricTotal">—</div><div class="sub">Según filtros actuales</div></div>
+    <div class="metric"><div class="label">Mayor magnitud visible</div><div class="value" id="metricMax">—</div><div class="sub" id="metricMaxSub">Esperando datos</div></div>
+    <div class="metric"><div class="label">Eventos cercanos</div><div class="value" id="metricNear">—</div><div class="sub">Dentro del radio elegido</div></div>
+    <div class="metric"><div class="label">Fuentes conectadas</div><div class="value" id="metricSources">0/2</div><div class="sub">USGS e Instituto de Geociencias UP</div></div>
+  </section>
+
+  <section class="filters">
+    <div class="chip-rows">
+      <div class="chip-group" role="group" aria-label="Magnitud mínima"><span class="chip-label">Magnitud</span>
+        <button class="chip" data-mag="0">Todas</button><button class="chip" data-mag="2.5">2.5+</button><button class="chip" data-mag="3.5">3.5+</button><button class="chip" data-mag="4">4.0+</button><button class="chip" data-mag="5">5.0+</button></div>
+      <div class="chip-group" role="group" aria-label="Periodo"><span class="chip-label">Periodo</span>
+        <button class="chip" data-period="day">24 h</button><button class="chip" data-period="week">7 días</button><button class="chip" data-period="month">30 días</button></div>
+    </div>
+    <details class="more-filters">
+      <summary>Preferencias y alertas</summary>
+      <div class="filter-grid">
+        <div class="field"><label for="period">Periodo</label><select id="period"><option value="day">Últimas 24 horas</option><option value="week">Últimos 7 días</option><option value="month">Últimos 30 días</option></select></div>
+        <div class="field"><label for="minMag">Magnitud mínima <span id="magRead">2.5+</span></label><select id="minMag"><option value="0">Cualquier magnitud</option><option value="2.5" selected>2.5+</option><option value="3.5">3.5+</option><option value="4">4.0+</option><option value="4.5">4.5+</option><option value="5">5.0+</option></select></div>
+        <div class="field"><label for="alertMagThreshold">Umbral de alerta sonora</label><select id="alertMagThreshold"><option value="3">M 3.0 o más</option><option value="3.5">M 3.5 o más</option><option value="4">M 4.0 o más</option><option value="4.5" selected>M 4.5 o más</option><option value="5">M 5.0 o más</option><option value="6">M 6.0 o más</option></select></div>
+        <div class="field"><label for="radius">Radio desde tu punto <span id="radiusRead">500 km</span></label><input type="range" id="radius" min="50" max="1000" step="50" value="500"><small id="centerLabel">Centro: Ciudad de Panamá</small></div>
+        <div class="field"><label for="search">Buscar región o lugar</label><input type="search" id="search" placeholder="Ej. Tonosí, Chiriquí…" /></div>
+      </div>
+      <div class="filter-actions"><button class="btn" id="locBtn" title="Usar ubicación del dispositivo">◎ Mi ubicación</button><button class="btn" id="allRegionsBtn">Mostrar todo Panamá y alrededores</button><button class="btn" id="testBtn">Probar sonido</button><button class="btn" id="simBtn">Simular alerta completa</button></div>
+      <div class="push-panel" style="margin-top:16px;padding:14px;border:1px solid var(--line,#26364a);border-radius:14px;background:rgba(255,255,255,.025)">
+        <h3 style="margin:0 0 6px">Notificaciones con la aplicación cerrada</h3>
+        <p id="pushStatus" role="status" style="margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.6">Notificaciones remotas no configuradas. Esta versión solo puede avisar localmente mientras se ejecuta la página.</p>
+        <div class="field" style="max-width:280px;margin-bottom:12px"><label for="pushMinMag">Magnitud mínima para notificaciones remotas</label><select id="pushMinMag"><option value="3.5">M 3.5 o más</option><option value="4" >M 4.0 o más</option><option value="4.5" selected>M 4.5 o más</option><option value="5">M 5.0 o más</option><option value="5.5">M 5.5 o más</option><option value="6">M 6.0 o más</option></select></div>
+        <div class="filter-actions"><button class="btn primary" id="pushEnableBtn" disabled>Configurar notificaciones remotas</button><button class="btn" id="pushDisableBtn" hidden>Desactivar notificaciones remotas</button></div>
+        <small style="display:block;margin-top:8px;color:var(--muted)">Esta opción se activará cuando el propietario configure un backend Web Push con HTTPS. No es una alerta oficial ni garantiza aviso antes del movimiento.</small>
+      </div>
+    </details>
+  </section>
+
+  <section class="section" id="seqPanel" hidden style="margin-bottom:18px" aria-label="Réplicas">
+    <div class="section-header"><div><h2>Réplicas del sismo principal</h2><p id="seqSubtitle"></p></div><span class="source-tag" id="seqTrend">—</span></div>
+    <div class="section-body">
+      <div class="seq-layout">
+        <div><div class="seq-numbers" id="seqNumbers"></div><p class="seq-note" id="seqNote"></p></div>
+        <div><div class="seq-chart-title">Réplicas por hora · últimas 24 h</div><div id="seqChart" class="seq-chart" role="img" aria-label="Gráfico de réplicas por hora"></div><div class="seq-axis"><span>hace 24 h</span><span>ahora</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="columns">
+    <section class="section">
+      <div class="section-header"><div><h2>Actividad sísmica reciente</h2><p id="listSubtitle">Eventos ordenados por hora</p></div><span class="status-chip" id="listCount">0 eventos</span></div>
+      <div class="section-body"><div class="quake-list" id="quakeList"><div class="empty loading">Consultando los catálogos sísmicos…</div></div></div>
+    </section>
+    <div style="display:grid;gap:18px">
+      <section class="section">
+        <div class="section-header"><div><h2>Mapa de eventos</h2><p>Selecciona un punto para ver su ubicación</p></div><span class="source-tag">MAPA EN VIVO</span></div>
+        <div id="map" role="application" aria-label="Mapa de terremotos recientes"></div>
+        <div class="map-foot">Los marcadores representan eventos reportados, no una predicción. Los más grandes indican mayor magnitud, no necesariamente mayor daño. Borde blanco: ocurrió en la última hora.<div class="legend"><span><i class="dot" style="background:#63d5a1"></i> M &lt; 3.5</span><span><i class="dot" style="background:#ffb454"></i> M 3.5–4.9</span><span><i class="dot" style="background:#ff626d"></i> M ≥ 5.0</span></div></div>
+      </section>
+      <section class="section">
+        <div class="section-header"><div><h2>Fuentes de datos</h2><p>Estado actual de cada fuente</p></div></div>
+        <div class="source-list">
+          <div class="source"><div><strong>USGS · Estados Unidos</strong><p>Servicio Geológico de EE. UU. · catálogo por región</p></div><span class="source-state" id="usgsState">Conectando…</span></div>
+          <div class="source"><div><strong>IGC-UP · Panamá</strong><p>Instituto de Geociencias, Universidad de Panamá (hora local)</p></div><span class="source-state" id="igcState">Conectando…</span></div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5;padding:4px 2px">Si un mismo sismo lo reportan las dos fuentes, aquí se muestra una sola vez con ambas magnitudes. Si IGC-UP aparece como “bloqueado por el navegador” hace falta el proxy (ver PUBLICAR.md).</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="https://sismosgeociencias.up.ac.pa/" target="_blank" rel="noopener">Abrir IGC-UP ↗</a><a class="btn" href="https://earthquake.usgs.gov/earthquakes/map/" target="_blank" rel="noopener">Mapa USGS ↗</a></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="section guide" id="queHacer" aria-label="Qué hacer en un sismo">
+    <div class="section-header"><div><h2>Qué hacer en un sismo</h2><p>Recomendaciones generales · sigue siempre a SINAPROC</p></div><a class="btn emergency" href="tel:911">☎ Emergencias 911</a></div>
+    <div class="section-body">
+      <div class="steps3">
+        <div class="step"><b>01</b><strong>Agáchate</strong><span>Bájate al suelo antes de que el movimiento te tire.</span></div>
+        <div class="step"><b>02</b><strong>Cúbrete</strong><span>Protege cabeza y cuello bajo una mesa resistente o junto a una pared interior.</span></div>
+        <div class="step"><b>03</b><strong>Sujétate</strong><span>Agárrate de tu refugio y quédate hasta que el movimiento termine.</span></div>
+      </div>
+      <details class="more"><summary>Después del sismo</summary><ul><li>Revisa si hay heridos y ayuda si puedes hacerlo con seguridad.</li><li>Prepárate para réplicas: pueden ser fuertes.</li><li>Si huele a gas, ventila y no uses fuego ni interruptores; sal del lugar.</li><li>Usa mensajes de texto en vez de llamadas para dejar líneas libres.</li><li>No uses ascensores. Aléjate de edificios dañados y de cables caídos.</li></ul></details>
+      <details class="more"><summary>Si estás cerca de la costa</summary><ul><li>Si el sismo es fuerte o dura mucho, aléjate de la costa hacia terreno alto sin esperar una alarma.</li><li>Sigue las indicaciones de las autoridades antes de volver.</li></ul></details>
+    </div>
+  </section>
+
+  <details class="section sensor-panel" aria-label="Detección experimental por acelerómetro" style="margin-top:18px">
+    <summary class="section-header"><div><h2>Sensor del teléfono · experimental</h2><p>Busca sacudidas bruscas mientras esta página está abierta (solo en tu teléfono)</p></div><span class="source-tag" id="sensorBadge">INACTIVO</span></summary>
+    <div class="section-body">
+      <div class="sensor-layout">
+        <div class="sensor-copy">
+          <p style="margin-top:0;color:var(--muted);font-size:13px;line-height:1.6">El sensor puede confundir un teléfono movido, una caída o un golpe con un sismo. No es un sismómetro y no detecta ondas P de manera fiable. No envía nada a nadie.</p>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="sensorBtn">◎ Activar acelerómetro</button><button class="btn" id="sensorResetBtn" disabled>Detener sensor</button></div>
+          <div id="sensorStatus" role="status" style="margin-top:12px;font-size:12px;color:var(--muted)">Sensor apagado. En móviles puede requerir permiso y HTTPS.</div>
+          <label class="share-option"><input type="checkbox" id="shareNetwork"> <span><strong>Participar en la detección comunitaria</strong><small>Opcional (desactivado en la versión pública).</small></span></label>
+          <div class="sensor-footnote">Los datos de la detección comunitaria solo existen cuando se ejecuta server.py.</div>
+        </div>
+        <div class="sensor-meter-box"><div class="meter-top"><span>Intensidad instantánea</span><strong id="sensorPeak">— m/s²</strong></div><div class="meter-track"><div id="sensorMeter" class="meter-fill"></div></div><div class="meter-scale"><span>0</span><span>Movimiento fuerte</span></div><div id="sensorEvent" class="sensor-event">Sin detecciones locales</div></div>
+      </div>
+    </div>
+  </details>
+
+  <div class="footer">
+    <img src="icons/logo-completo.jpg" alt="SismoPanamá — Alerta sísmica" class="footer-logo" width="220" />
+    <p>Sismo Panamá v0.7.1 · proyecto comunitario, gratuito y de código abierto (MIT). Datos preliminares que pueden cambiar cuando los organismos revisen los eventos. Fuentes: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noopener">USGS</a> y <a href="https://sismosgeociencias.up.ac.pa/" target="_blank" rel="noopener">Instituto de Geociencias de la Universidad de Panamá (IGC-UP)</a>. No es un sistema oficial y no sustituye a SINAPROC. El sonido y los avisos locales dependen del navegador, permisos, conexión y estado del dispositivo. Notificaciones remotas en segundo plano: requieren configurar el backend opcional. <a href="privacidad.html">Privacidad</a> · <a href="DISCLAIMER.md">Aviso de limitaciones</a> · <a href="PUBLICAR.md">Guía de publicación</a>.</p>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="alertBackdrop" role="dialog" aria-modal="true" aria-labelledby="alertTitle">
+  <div class="alert-modal"><div class="alert-icon">⚠️</div><h2 id="alertTitle">SISMO REPORTADO</h2><div class="alert-mag" id="alertMag">M 0.0</div><p id="alertText">Se ha detectado un nuevo evento en una fuente sísmica.</p><p class="alert-small" id="alertSafety">Este aviso no garantiza tiempo para ponerse a salvo. Si estás sintiendo movimiento: agáchate, cúbrete y sujétate.</p><button class="btn primary" id="dismissAlert">Entendido · detener alarma</button></div>
+</div>
+
+<div class="vigil" id="vigil" hidden role="dialog" aria-modal="true" aria-label="Modo vigilia">
+  <div class="vigil-conn" id="vigilConn" hidden>⚠ SIN CONEXIÓN CON LAS FUENTES · no recibirás alertas hasta que vuelva</div>
+  <div class="vigil-clock" id="vigilClock">--:--</div>
+  <div class="vigil-status" id="vigilStatus">Vigilando…</div>
+  <div class="vigil-last" id="vigilLast"></div>
+  <div class="vigil-tips">Pantalla encendida y atenuada para ahorrar batería. Deja el teléfono <strong>cargando</strong>, con el volumen alto y sin cerrar esta pestaña.<br><span id="vigilWake"></span></div>
+  <button class="btn" id="vigilExit">Salir del modo vigilia</button>
+</div>
+
+<script src="config.js"></script>
+<script src="core.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+<script src="push-client.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

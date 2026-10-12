@@ -1,0 +1,17 @@
+'use strict';
+const assert = require('node:assert/strict');
+global.window = {};
+require('../config.js');
+const c = global.window.SISMO_CONFIG;
+assert.equal(c.POLL_SECONDS, 30, 'USGS debe consultarse cada 30 segundos en primer plano');
+assert.equal(c.POLL_SECONDS_VIGILIA, 15, 'USGS en modo vigilia');
+assert.equal(c.IGC_POLL_SECONDS, 60, 'IGC-UP en primer plano');
+assert.equal(c.IGC_POLL_SECONDS_VIGILIA, 30, 'IGC-UP en modo vigilia');
+assert.equal(c.POLL_SECONDS_HIDDEN, 120, 'USGS con pestaña oculta');
+assert.equal(c.IGC_POLL_SECONDS_HIDDEN, 180, 'IGC-UP con pestaña oculta');
+const app = require('fs').readFileSync('app.js', 'utf8');
+assert.ok(app.includes('document.hidden ? (C.POLL_SECONDS_HIDDEN || 120)'), 'Una pestaña oculta debe aplicar el intervalo reducido aunque modo vigilia siga activo');
+assert.ok(c.MOTION_CLUSTER_POLL_SECONDS >= 15, 'No sondear clusters cada 5 segundos');
+assert.equal(c.ENABLE_COMMUNITY, false, 'La detección comunitaria debe permanecer desactivada');
+assert.equal(c.PUSH_API_BASE, '', 'Web Push debe estar apagado hasta configurar un backend');
+console.log('Configuración validada. Intervalos sísmicos y funciones experimentales correctos.');
